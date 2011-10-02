@@ -11,6 +11,7 @@
 typedef struct vertex vertex;
 struct vertex
 {
+	int id; // The vertex id, assigned at the initialization of the graph
 	int state_day; // The day in which the current vertex state was set
 	enum state state; // The current state of the individual
 	struct vertex_list_node *first_neighbor; // A linked list (using the vertex_list_node struct) of the individual's vertex_list_nodes

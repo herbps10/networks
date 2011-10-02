@@ -55,7 +55,7 @@ void vertex_add_adjacency(vertex *v, vertex *neighbor)
 	// Allocate space for the new node that will
 	// go on v's adjacency linked list
 	vertex_list_node *node;
-	node = malloc(sizeof *node);
+	node = malloc(sizeof(vertex_list_node));
 	
 	node->vertex = neighbor;
 	node->next = v->first_neighbor;
@@ -95,26 +95,25 @@ void vertex_delete_adjacency(vertex *v, vertex *neighbor)
 			{
 				v->first_neighbor = iterator->next;
 			}
-			else if(iterator->next == NULL)
-			{
-				iterator->prev->next = NULL;
-			}
 			else
 			{
 				iterator->prev->next = iterator->next;	
 			}
 
-			printf("Freeing...\n");
+			if(iterator->next != NULL)
+			{
+				iterator->next->prev = NULL;
+				iterator->next->prev = iterator->prev;
+			}
+
 			free(iterator);
-			printf("Done freeing...\n");
 
-			break;
+			v->degree--; // Since we're deleting an edge, the degree goes down by one
+
+			return;
 		}
-
 		iterator = iterator->next;
 	}
-
-	v->degree--; // Since we're deleting an edge, the degree goes down by one
 }
 
 /**

@@ -4,9 +4,9 @@
 #define TRUE 1
 #define FALSE 0
 
-#define NETWORK_SIZE 20
-#define SIMULATION_LENGTH 10
-#define INITIAL_INFECTED 5
+#define NETWORK_SIZE 10000
+#define SIMULATION_LENGTH 1865
+#define INITIAL_INFECTED 5 
 #define DAYS_INFECTIOUS 3
 #define DAYS_RECOVERED 56
 #define R0 2.0
@@ -17,31 +17,28 @@ typedef enum state state;
 #include "vertex.h"
 #include "vertex_list.h"
 #include "graph.h"
+#include "simulation.h"
 
 #include "vertex_list.c"
 #include "graph.c"
 #include "vertex.c"
+#include "simulation.c"
 
 int main()
 {	
-	graph g = graph_create();
+	srand(time(NULL));
 
-	graph_ring_connect(&g, 1);
-	graph_rewire(&g, 0.1);
+	test_parameters(
+		1, 	// K lower bound
+		2,	// K upper bound
+		1,	// K step
 
-	graph_init_infected(&g);
+		0.0,	// P lower bound
+		0.2, 	// P upper bound
+		0.1, 	// P step
 
-	graph_inspect(&g);
-
-	int day = 0;
-	while(day < SIMULATION_LENGTH && graph_has_infectious(&g) == 1)
-	{
-		printf("Day: %i\n", day);
-
-		day = graph_advance(&g, day);
-
-		graph_inspect(&g);
-	}
+		1	// Number of repititions per parameter set
+	);
 
 	return 0;
 }

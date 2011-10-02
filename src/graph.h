@@ -40,4 +40,9 @@ void graph_init_infected(graph *);
 int graph_advance(graph *, int);
 _Bool graph_has_infectious(graph *);
 
+// Data Collection
+void graph_make_pajek(graph *, char *);
+FILE *graph_open_stats(char *);
+void graph_write_stats(graph *, FILE *, int, double, int, int, int);
+
 #endif
