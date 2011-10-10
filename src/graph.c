@@ -17,6 +17,9 @@ void graph_init(graph *g)
 	g->infectious = NULL;
 	g->latent = NULL;
 
+	g->infectious_tail = NULL;
+	g->latent_tail = NULL;
+
 	graph_vertices_create(g);
 }
 
@@ -94,14 +97,14 @@ void graph_rewire(graph *g, double p)
 	
 	for(i = 0; i < NETWORK_SIZE; i++)
 	{
-		// Generate a random number between 0 and 1
-		// if value is less than p, then rewire the edge
-		random = (double)rand() / RAND_MAX;
-
 		iterator = g->vertices[i]->first_neighbor;
 
 		while(iterator != NULL)
 		{
+			// Generate a random number between 0 and 1
+			// if value is less than p, then rewire the edge
+			random = (double)rand() / RAND_MAX;
+
 			if(random < p)
 			{
 				// Keep generating random vertex indices until we find one that we aren't connected to
@@ -110,6 +113,8 @@ void graph_rewire(graph *g, double p)
 					// Generate a random vertex index
 					random_vertex = ((double)rand() / (double)RAND_MAX) * NETWORK_SIZE;
 				} while(random_vertex == i && vertex_edge_exists(g->vertices[i], g->vertices[random_vertex]) == FALSE);
+
+				iterator->vertex = g->vertices[random_vertex];
 
 				vertex_delete_edge(g->vertices[i], iterator->vertex);
 				vertex_add_edge(g->vertices[i], g->vertices[random_vertex]);
@@ -226,6 +231,18 @@ int graph_advance(graph *g, int day)
 
 		g->infectious = vertex_list_merge(g->infectious, g->latent);
 
+		/*
+		if(g->infectious_tail == NULL)
+		{
+			g->infectious = g->latent;
+		}
+		else {
+			vertex_list_combine(g->infectious_tail, g->latent);
+		}
+
+		g->infectious_tail = latent_iterator;
+		*/
+
 		g->latent = NULL;
 	}
 
@@ -329,7 +346,7 @@ FILE *graph_open_stats(char *name)
 {
 	FILE *fp = fopen(name, "w");
 
-	fprintf(fp, "counter, p, k, repitition, day\n");
+	fprintf(fp, "p, k, repitition, day\n");
 	
 	return fp;
 }
@@ -337,10 +354,9 @@ FILE *graph_open_stats(char *name)
 /**
  * Appends graph statistics to a supplied file pointer
  */
-void graph_write_stats(graph *g, FILE *fp, int counter, double p, int k, int r, int day)
+void graph_write_stats(graph *g, FILE *fp, double p, int k, int r, int day)
 {
-	fprintf(fp, "%i,%f,%i,%i,%i\n",
-		counter,
+	fprintf(fp, "%f,%i,%i,%i\n",
 		p,
 		k,
 		r,

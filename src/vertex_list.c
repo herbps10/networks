@@ -62,8 +62,8 @@ vertex_list_node *vertex_list_append(vertex_list_node *list, vertex *v)
 	vertex_list_node *node = malloc(sizeof(vertex_list_node));
 
 	node->vertex = v;
-	node->next = list;
 	node->prev = NULL;
+	node->next = list;
 
 	if(list != NULL)
 	{
@@ -83,6 +83,10 @@ vertex_list_node *vertex_list_merge(vertex_list_node *list1, vertex_list_node *l
 	{
 		return list2;
 	}
+	else if(list2 == NULL)
+	{
+		return list1;
+	}
 	else 
 	{
 		vertex_list_node *iterator = list1;
@@ -95,6 +99,18 @@ vertex_list_node *vertex_list_merge(vertex_list_node *list1, vertex_list_node *l
 		list2->prev = iterator;
 
 		return list1;
+	}
+}
+
+/**
+ * Takes the tail of one list and has it continue to the next
+ */
+void vertex_list_combine(vertex_list_node *tail, vertex_list_node *head)
+{
+	if(tail != NULL)
+	{
+		tail->next = head;
+		head->prev = tail;
 	}
 }
 

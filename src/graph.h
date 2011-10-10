@@ -14,6 +14,9 @@ struct graph
 	vertex_list_node *infectious;
 	vertex_list_node *latent;
 
+	vertex_list_node *infectious_tail;
+	vertex_list_node *latent_tail;
+
 	vertex *vertices[NETWORK_SIZE];
 };
 
@@ -43,6 +46,6 @@ _Bool graph_has_infectious(graph *);
 // Data Collection
 void graph_make_pajek(graph *, char *);
 FILE *graph_open_stats(char *);
-void graph_write_stats(graph *, FILE *, int, double, int, int, int);
+void graph_write_stats(graph *, FILE *, double, int, int, int);
 
 #endif

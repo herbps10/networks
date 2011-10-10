@@ -196,6 +196,7 @@ _Bool vertex_spread_infection(vertex *source, vertex *target, int day)
 	// of secondary infections caused by the vertex will roughly equal
 	// R0.
 	T = 1 - (1 - (((double)R0/(double)source->degree) / (double)DAYS_INFECTIOUS));
+	//T = 0.9;
 
 	// Generate a random number between 0 and 1
 	// If it is smaller than T, then spread the infection
