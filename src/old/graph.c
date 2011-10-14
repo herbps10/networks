@@ -14,11 +14,8 @@ graph graph_create()
  */
 void graph_init(graph *g)
 {
-	g->infectious = NULL;
-	g->latent = NULL;
-
-	g->infectious_tail = NULL;
-	g->latent_tail = NULL;
+	g->infectious[0] = NULL;
+	g->latent[0] = NULL;
 
 	graph_vertices_create(g);
 }
@@ -28,9 +25,6 @@ void graph_init(graph *g)
  */
 void graph_destroy(graph *g)
 {
-	vertex_list_destroy(g->infectious);
-	vertex_list_destroy(g->latent);
-
 	int i;
 	for(i = 0; i < NETWORK_SIZE; i++)
 	{
@@ -162,44 +156,22 @@ void graph_init_infected(graph *g)
  */
 int graph_advance(graph *g, int day)
 {
-	vertex_list_node *infectious_iterator = g->infectious, *latent_iterator = g->latent, *new_latent, *temp;
-
 	// Loop through the list of infectious vertices in the graph
-	while(infectious_iterator != NULL)
+	for(int infectious_index = g->infectious.start; infectious_index < g->infectious.end; infectious_index++)
 	{
 		// Check to see if the invididual is ready to move to the recovered class.
 		// If so, set its state to recovered, and remove it from the list of
 		// infectious individuals.
-		if(day - infectious_iterator->vertex->state_day > DAYS_INFECTIOUS)
+		if(day - g->infectious[infectious_index]->vertex->state_day > DAYS_INFECTIOUS)
 		{
 			// Set state to recovered
-			vertex_set_state(infectious_iterator->vertex, RECOVERED, day);
-			if(infectious_iterator->prev == NULL)
-			{
-				g->infectious = infectious_iterator->next;
-				if(infectious_iterator->next != NULL)
-				{
-					g->infectious->prev = NULL;
-				}
-				
-				temp = infectious_iterator;
-				infectious_iterator = infectious_iterator->next;
-				free(temp);
-			}
-			else
-			{
-				infectious_iterator->prev->next = infectious_iterator->next;
-				temp = infectious_iterator;
-				free(temp);
-				infectious_iterator = infectious_iterator->next;
-				free(temp);
-			}
+			vertex_set_state(g->infectious[infectious_index]->vertex, RECOVERED, day);
 		}
 		else
 		{
 			// Have the vertex try to infect its neighbors. It will return a list of 
 			// neighbors that it succesfully infected (new_infectious).
-			new_latent = vertex_infect_neighbors(infectious_iterator->vertex, day);
+			new_latent = vertex_infect_neighbors(g->infectious[infectious_index]->vertex, day);
 
 			// if anyone was infected, append the list to the graph's list of
 			// latent people.
@@ -228,22 +200,6 @@ int graph_advance(graph *g, int day)
 
 			latent_iterator = latent_iterator->next;
 		}
-
-		g->infectious = vertex_list_merge(g->infectious, g->latent);
-
-		/*
-		if(g->infectious_tail == NULL)
-		{
-			g->infectious = g->latent;
-		}
-		else {
-			vertex_list_combine(g->infectious_tail, g->latent);
-		}
-
-		g->infectious_tail = latent_iterator;
-		*/
-
-		g->latent = NULL;
 	}
 
 	return day + 1;
@@ -282,7 +238,7 @@ void graph_inspect(graph *g)
  */
 _Bool graph_has_infectious(graph *g)
 {
-	if(g->infectious == NULL) return FALSE;
+	if(vertex_list_length(g->infectious) == 0) return FALSE;
 	return TRUE;
 }
 

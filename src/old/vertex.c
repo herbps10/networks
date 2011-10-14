@@ -16,7 +16,7 @@ void vertex_init(vertex *v)
 {
 	v->state_day = 0;
 	v->state = SUSCEPTIBLE;
-	v->first_neighbor = NULL;
+	linked_array_init(v->neighbors);
 	v->degree = 0; // Doesn't have any neighbors so degree is 0
 }
 
@@ -105,8 +105,6 @@ void vertex_delete_adjacency(vertex *v, vertex *neighbor)
 				iterator->next->prev = NULL;
 				iterator->next->prev = iterator->prev;
 			}
-
-			free(iterator);
 
 			v->degree--; // Since we're deleting an edge, the degree goes down by one
 

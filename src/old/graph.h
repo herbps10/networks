@@ -11,11 +11,8 @@
 typedef struct graph graph;
 struct graph
 {
-	vertex_list_node *infectious;
-	vertex_list_node *latent;
-
-	vertex_list_node *infectious_tail;
-	vertex_list_node *latent_tail;
+	vertex_list infectious;
+	vertex_list latent;
 
 	vertex *vertices[NETWORK_SIZE];
 };
