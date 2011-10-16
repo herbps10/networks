@@ -14,12 +14,15 @@ void vertex_init(vertex *v)
 	v->id = 0;
 	v->state = SUSCEPTIBLE;
 	v->day = 0;
+	v->degree = 0;
 
 	v->neighbors = vertex_stack_create();
 }
 
 void vertex_add_edge(graph *g, vertex *v1, vertex *v2)
 {
+	v1->degree++;
+	v2->degree++;
 	vertex_add_adjacency(g, v1, v2);
 	vertex_add_adjacency(g, v2, v1);
 }
@@ -50,6 +53,9 @@ _Bool vertex_edge_exists(vertex *v1, vertex *v2)
 
 void vertex_delete_edge(struct graph_struct *g, vertex *v1, vertex *v2)
 {
+	v1->degree--;
+	v2->degree--;
+
 	vertex_node *iterator = v1->neighbors->head;
 
 	while(iterator != NULL)
@@ -80,9 +86,70 @@ void vertex_set_state(vertex *v, state s, int day)
 	v->day = day;
 }
 
-void vertex_spread_infection(vertex *v)
+void vertex_infect_neighbors(graph *g, vertex *v, int day)
 {
-	double p;
-	// Loop through neighbors
-	
+	vertex_node *iterator;
+
+	// Sanity check
+	// The vertex can only infect others if it is infectious
+	// Also if it was just set to the infectious state this turn then it can't infect anyone else
+	if(v->state == INFECTIOUS && day - v->day > 0)
+	{
+		// Go through each neighbor
+		iterator = v->neighbors->head;
+
+		while(iterator != NULL)
+		{
+			// If the vertex is recovered, then there is a chance
+			// that it is ready to move back into the susceptible class.
+			//
+			// Check to see if it should be moved back into the susceptible class.
+			if(iterator->vertex->state == RECOVERED)
+			{
+				if(day - iterator->vertex->day > DAYS_RECOVERED)
+				{
+					vertex_set_state(iterator->vertex, SUSCEPTIBLE, day);
+				}
+			}
+			
+			// If the neighbor is susceptible, try to infect it!
+			if(iterator->vertex->state == SUSCEPTIBLE)
+			{
+				// If the disease was spread to the neighbor, 
+				// then add it to the list of newly infected vertices
+				vertex_spread_infection(g, v, iterator->vertex, day);
+			}
+			
+
+			iterator = iterator->next;
+		}
+	}
+}
+
+void vertex_spread_infection(graph *g, vertex *source, vertex *target, int day)
+{
+	double T, r;
+
+	// The probability of infecting a neighbor is proportional to
+	// how the degree of the vertex. This is so that the number of
+	// of secondary infections caused by the vertex will roughly equal
+	// R0.
+	T = 1 - (1 - (((double)R0/(double)source->degree) / (double)DAYS_INFECTIOUS));
+	//T = 0.9;
+
+	// Generate a random number between 0 and 1
+	// If it is smaller than T, then spread the infection
+	r = (double)rand() / (double)RAND_MAX;
+
+	// If we infect the neighbor, put them into the
+	// latent class
+	if(r < T)
+	{
+		vertex_set_state(target, LATENT, day);
+
+		vertex_node *node = vertex_node_pool_get(g->pool);
+		node->vertex = target;
+
+		vertex_queue_enqueue(g->latent, node);
+	}
 }

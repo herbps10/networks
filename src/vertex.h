@@ -10,6 +10,7 @@ struct vertex_struct
 {
 	int id;
 	int day;
+	int degree;
 	enum state_enum state;
 
 	struct vertex_stack_struct *neighbors;
@@ -25,6 +26,7 @@ void vertex_delete_edge(struct graph_struct *, vertex *, vertex *);
 _Bool vertex_edge_exists(vertex *, vertex *);
 void vertex_add_adjacency(struct graph_struct *, vertex *, vertex *);
 void vertex_set_state(vertex *, state, int);
-void vertex_spread_infection(vertex *);
+void vertex_infect_neighbors(graph *, vertex *, int);
+void vertex_spread_infection(graph *, vertex *, vertex *, int);
 
 #endif

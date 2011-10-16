@@ -14,7 +14,7 @@ void vertex_stack_init(vertex_stack *stack)
 	stack->head = NULL;
 }
 
-void vertex_stack_push(vertex_stack *stack, vertex_node *node)
+void vertex_stack_push(struct vertex_stack_struct *stack, struct vertex_node_struct *node)
 {
 	if(stack->head != NULL)
 	{
@@ -27,7 +27,7 @@ void vertex_stack_push(vertex_stack *stack, vertex_node *node)
 	stack->head = node;
 }
 
-vertex_node *vertex_stack_pop(vertex_stack *stack)
+vertex_node *vertex_stack_pop(struct vertex_stack_struct *stack)
 {
 	if(stack->head == NULL)
 	{
@@ -72,4 +72,17 @@ void vertex_stack_inspect(vertex_stack *stack)
 		//printf("id: %i, address: %p, prev: %p, next: %p\n", iterator->vertex->id, iterator, iterator->prev, iterator->next);
 		iterator = iterator->next;
 	}
+}
+
+void vertex_stack_destroy(graph *g, vertex_stack *stack)
+{
+	vertex_node *node;
+	while(vertex_stack_top(stack) != NULL)
+	{
+		node = vertex_stack_pop(stack);
+		node->vertex = NULL;
+		vertex_node_pool_free(g->pool, node);
+	}
+
+	stack->head = NULL;
 }

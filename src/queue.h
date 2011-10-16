@@ -5,6 +5,8 @@ struct vertex_queue_struct
 {
 	struct vertex_node_struct *head;
 	struct vertex_node_struct *tail;
+
+	int length;
 };
 
 typedef struct vertex_queue_struct vertex_queue;

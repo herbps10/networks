@@ -13,23 +13,34 @@ void vertex_queue_init(vertex_queue *queue)
 {
 	queue->head = NULL;
 	queue->tail = NULL;
+
+	queue->length = 0;
 }
 
 void vertex_queue_enqueue(vertex_queue *queue, vertex_node *node)
 {
-	if(queue->head == NULL)
+	if(queue->head == node)
 	{
-		queue->tail = node;
+		printf("Trying to add node to queue that already exists in queue!\n");
 	}
 	else
 	{
-		queue->head->prev = node;
+		queue->length++;
+
+		if(queue->head == NULL)
+		{
+			queue->tail = node;
+		}
+		else
+		{
+			queue->head->prev = node;
+		}
+
+		node->prev = NULL;
+		node->next = queue->head;
+
+		queue->head = node;
 	}
-
-	node->prev = NULL;
-	node->next = queue->head;
-
-	queue->head = node;
 }
 
 vertex_node *vertex_queue_top(vertex_queue *queue)
@@ -62,6 +73,8 @@ vertex_node *vertex_queue_dequeue(vertex_queue *queue)
 		queue->tail = queue->tail->prev;
 	}
 
+	queue->length--;
+
 	return node;
 }
 
@@ -74,4 +87,31 @@ void vertex_queue_inspect(vertex_queue *queue)
 		//printf("id: %i, address: %p, prev: %p, next: %p\n", iterator->vertex->id, iterator, iterator->prev, iterator->next);
 		iterator = iterator->next;
 	}
+}
+
+void vertex_queue_destroy(graph *g, vertex_queue *queue)
+{
+	vertex_node *iterator = queue->head;
+	vertex_node *temp;
+
+	while(iterator != NULL)
+	{
+		//printf("%p, %p\n", iterator, iterator->next);
+		temp = iterator->next;
+		vertex_node_pool_free(g->pool, iterator);
+		iterator = temp;
+	}
+
+	queue->head = NULL;
+	queue->tail = NULL;
+}
+
+_Bool vertex_queue_empty(vertex_queue *queue)
+{
+	if(queue->head == NULL)
+	{
+		return false;
+	}
+
+	return true;
 }

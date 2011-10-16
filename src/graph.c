@@ -23,6 +23,22 @@ void graph_init(graph *g)
 	g->pool = vertex_node_pool_create();
 }
 
+void graph_reset(graph *g)
+{
+	for(int i = 0; i < NETWORK_SIZE; i++)
+	{
+		g->vertices[i]->state = SUSCEPTIBLE;
+
+		vertex_stack_destroy(g, g->vertices[i]->neighbors);
+
+		g->vertices[i]->degree = 0;
+		g->vertices[i]->day = 0;
+	}
+
+	vertex_queue_destroy(g, g->infectious);
+	vertex_queue_destroy(g, g->latent);
+}
+
 void graph_circle(graph *g, int K)
 {
 	int before, after;
@@ -146,6 +162,21 @@ void graph_advance(graph *g, int day)
 	}
 
 	/**
+	 * Change over all the latent to infectious
+	 */
+	vertex_node *node;
+
+	node = vertex_queue_dequeue(g->latent);
+		
+	while(node != NULL)
+	{
+		vertex_set_state(node->vertex, INFECTIOUS, day);
+		vertex_queue_enqueue(g->infectious, node);
+
+		node = vertex_queue_dequeue(g->latent);
+	}
+
+	/**
 	 * Now loop through all the remaining infectious vertices and
 	 * have them try to infect their neighbors.
 	 */
@@ -153,7 +184,7 @@ void graph_advance(graph *g, int day)
 	vertex_node *infectious_iterator = g->infectious->head;
 	while(infectious_iterator != NULL)
 	{
-		vertex_spread_infection(infectious_iterator->vertex);
+		vertex_infect_neighbors(g, infectious_iterator->vertex, day);
 
 		infectious_iterator = infectious_iterator->next;
 	}
@@ -209,4 +240,9 @@ void graph_write_pajek(graph *g, char *file)
 	}
 
 	fclose(fp);
+}
+
+_Bool graph_has_infectious(graph *g)
+{
+	return !vertex_queue_empty(g->infectious);
 }

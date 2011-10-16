@@ -1,6 +1,8 @@
 #ifndef GRAPH_HEADER
 #define GRAPH_HEADER
 
+#include "node_pool.h"
+
 struct graph_struct
 {
 	struct vertex_struct *vertices[NETWORK_SIZE];
@@ -8,7 +10,7 @@ struct graph_struct
 	struct vertex_queue_struct *infectious;
 	struct vertex_queue_struct *latent;
 
-	struct vertex_node_pool *pool;
+	struct vertex_node_pool_struct *pool;
 };
 
 typedef struct graph_struct graph;
@@ -23,5 +25,9 @@ void graph_rewire(graph *, double);
 void graph_advance(graph *, int);
 
 void graph_inspect(graph *);
+
+void graph_reset(graph *);
+
+_Bool graph_has_infectious(graph *);
 
 #endif
