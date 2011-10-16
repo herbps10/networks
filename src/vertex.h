@@ -24,5 +24,7 @@ void vertex_add_edge(struct graph_struct *, vertex *, vertex *);
 void vertex_delete_edge(struct graph_struct *, vertex *, vertex *);
 _Bool vertex_edge_exists(vertex *, vertex *);
 void vertex_add_adjacency(struct graph_struct *, vertex *, vertex *);
+void vertex_set_state(vertex *, state, int);
+void vertex_spread_infection(vertex *);
 
 #endif

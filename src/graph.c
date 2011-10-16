@@ -5,7 +5,6 @@ graph *graph_create()
 	graph *g = malloc(sizeof(graph));
 
 	graph_init(g);
-	graph_reset(g);
 
 	return g;
 }
@@ -22,13 +21,6 @@ void graph_init(graph *g)
 	g->latent = vertex_queue_create();
 
 	g->pool = vertex_node_pool_create();
-
-	graph_reset(g);
-}
-
-void graph_reset(graph *g)
-{
-	graph_circle(g, 2);
 }
 
 void graph_circle(graph *g, int K)
@@ -84,8 +76,8 @@ void graph_rewire(graph *g, double p)
 
 				iterator->vertex = g->vertices[random_vertex];
 
-				vertex_delete_edge(g, g->vertices[i], iterator->vertex);
-				vertex_add_edge(g, g->vertices[i], g->vertices[random_vertex]);
+				//vertex_delete_edge(g, g->vertices[i], iterator->vertex);
+				//vertex_add_edge(g, g->vertices[i], g->vertices[random_vertex]);
 			}
 
 			iterator = iterator->next;
@@ -99,4 +91,122 @@ void graph_inspect(graph *g)
 	{
 		printf("Vertex: %i\n", g->vertices[i]->id);
 	}
+}
+
+void graph_init_infected(graph *g)
+{
+	int infected = 0, r;
+	do
+	{
+		r = ((double)rand() / (double)RAND_MAX) * NETWORK_SIZE;
+		
+		// Check to make sure the vertex isn't already infectious
+		if(g->vertices[r]->state != INFECTIOUS)
+		{
+			// This is always going to be used at the start of a new simulation,
+			// so days will be 0
+			vertex_set_state(g->vertices[r], INFECTIOUS, 0);
+
+			vertex_node *node = vertex_node_pool_get(g->pool);
+			node->vertex = g->vertices[r];
+
+			// Add this individual to the graph's list of infected individuals
+			vertex_queue_enqueue(g->infectious, node);
+
+			infected++;
+		}
+	}
+	while(infected < INITIAL_INFECTED);
+}
+
+void graph_advance(graph *g, int day)
+{
+	vertex_node *infected_node;
+
+	/**
+	 * Loop through the end of the infected queue
+	 * and look for ones that shouldn't be infectious any longer.
+	 * remove them. When it hits one that should remain infectious,
+	 * it stops.
+	 */
+	while(vertex_queue_top(g->infectious) != NULL)
+	{
+		if(day - vertex_queue_top(g->infectious)->vertex->day > DAYS_INFECTIOUS)
+		{
+			infected_node = vertex_queue_dequeue(g->infectious);
+			
+			vertex_set_state(infected_node->vertex, RECOVERED, day);
+
+			vertex_node_pool_free(g->pool, infected_node);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	/**
+	 * Now loop through all the remaining infectious vertices and
+	 * have them try to infect their neighbors.
+	 */
+	
+	vertex_node *infectious_iterator = g->infectious->head;
+	while(infectious_iterator != NULL)
+	{
+		vertex_spread_infection(infectious_iterator->vertex);
+
+		infectious_iterator = infectious_iterator->next;
+	}
+}
+
+/**
+ * Writes out the graph in the pajek file format to the supplied file
+ */
+void graph_write_pajek(graph *g, char *file)
+{
+	int i;
+	FILE *fp;
+	char *color;
+	vertex_node *iterator;
+	
+	fp= fopen(file, "w");
+
+	// Print out list of vertices in graph
+	fprintf(fp, "*Vertices %i\n", NETWORK_SIZE);
+
+	for(i = 0; i < NETWORK_SIZE; i++)
+	{
+		switch(g->vertices[i]->state)
+		{
+			case SUSCEPTIBLE:
+				color = "white";
+				break;
+			case LATENT:
+				color = "gray";
+				break;
+			case INFECTIOUS:
+				color = "red";
+				break;
+			case RECOVERED:
+				color = "green";
+				break;
+		}
+
+		fprintf(fp, "%i \"%i\" ic %s\n", i + 1, i + 1, color);
+	}
+
+	fprintf(fp, "*Edges\n");
+
+	for(i = 0; i < NETWORK_SIZE; i++)
+	{
+		iterator = g->vertices[i]->neighbors->head;
+
+		while(iterator != NULL)
+		{
+			fprintf(fp, "%i %i\n", i + 1, iterator->vertex->id + 1);
+			iterator = iterator->next;
+		}
+	}
+
+	fclose(fp);
 }

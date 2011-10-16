@@ -18,6 +18,9 @@ void graph_init(graph *);
 void graph_reset(graph *);
 
 void graph_circle(graph *, int);
+void graph_rewire(graph *, double);
+
+void graph_advance(graph *, int);
 
 void graph_inspect(graph *);
 

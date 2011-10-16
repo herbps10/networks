@@ -73,3 +73,16 @@ void vertex_delete_edge(struct graph_struct *g, vertex *v1, vertex *v2)
 		iterator = iterator->next;
 	}
 }
+
+void vertex_set_state(vertex *v, state s, int day)
+{
+	v->state = s;
+	v->day = day;
+}
+
+void vertex_spread_infection(vertex *v)
+{
+	double p;
+	// Loop through neighbors
+	
+}
