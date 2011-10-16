@@ -1,16 +1,13 @@
 #ifndef VERTEX_NODE_HEADER
 #define VERTEX_NODE_HEADER
 
-#include "vertex.h"
-
-typedef struct vertex_node vertex_node;
-
-struct vertex_node {
-	vertex *vertex;
-	vertex_node *next;
-	vertex_node *prev;
+struct vertex_node_struct {
+	struct vertex_struct *vertex;
+	struct vertex_node_struct *next;
+	struct vertex_node_struct *prev;
 };
 
+typedef struct vertex_node_struct vertex_node;
 
 // Creation
 

@@ -4,14 +4,16 @@
 #define false 0
 #define true 1
 
+#include "vertex_node.h"
+
 typedef _Bool bool;
 
-struct vertex_stack
+struct vertex_stack_struct
 {
-	struct vertex_node *head;
+	struct vertex_node_struct *head;
 };
 
-typedef struct vertex_stack vertex_stack;
+typedef struct vertex_stack_struct vertex_stack;
 
 vertex_stack *vertex_stack_create();
 void vertex_stack_init(vertex_stack *);

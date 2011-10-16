@@ -1,15 +1,13 @@
 #ifndef VERTEX_QUEUE_HEADER
 #define VERTEX_QUEUE_HEADER
 
-#include "vertex_node.h"
-
-struct vertex_queue
+struct vertex_queue_struct
 {
-	vertex_node *head;
-	vertex_node *tail;
+	struct vertex_node_struct *head;
+	struct vertex_node_struct *tail;
 };
 
-typedef struct vertex_queue vertex_queue;
+typedef struct vertex_queue_struct vertex_queue;
 
 vertex_queue *vertex_queue_create();
 void vertex_queue_init(vertex_queue *);
