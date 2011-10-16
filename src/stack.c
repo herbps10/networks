@@ -65,7 +65,7 @@ void vertex_stack_inspect(vertex_stack *stack)
 	vertex_node *iterator = stack->head;
 	while(iterator != NULL)
 	{
-		printf("id: %i, address: %p, prev: %p, next: %p\n", iterator->vertex, iterator, iterator->prev, iterator->next);
+		printf("id: %i, address: %p, prev: %p, next: %p\n", iterator->vertex->id, iterator, iterator->prev, iterator->next);
 		iterator = iterator->next;
 	}
 }

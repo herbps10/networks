@@ -7,7 +7,8 @@
 #include "stack.c"
 #include "queue.c"
 #include "graph.c"
-#include "pool.c"
+#include "node_pool.c"
+#include "vertex.c"
 
 int main()
 {

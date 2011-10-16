@@ -12,7 +12,11 @@ graph *graph_create()
 
 void graph_init(graph *g)
 {
-	g->vertices = vertex_stack_create();
+	for(int i = 0; i < NETWORK_SIZE; i++)
+	{
+		g->vertices[i] = vertex_create();
+		g->vertices[i]->id = i;
+	}
 
 	g->infectious = vertex_queue_create();
 	g->latent = vertex_queue_create();
@@ -22,22 +26,13 @@ void graph_init(graph *g)
 
 void graph_reset(graph *g)
 {
-	vertex_node *node;
-	for(int i = 0; i < NETWORK_SIZE; i++)
-	{
-		node = vertex_node_pool_get(g->pool);
-		node->vertex = i;
-		vertex_stack_push(g->vertices, node);
-	}
+	graph_circle(g, 2);
 }
 
 void graph_inspect(graph *g)
 {
-	vertex_node *iterator = g->vertices->head;
-
-	while(iterator != false)
+	for(int i = 0; i < NETWORK_SIZE; i++)
 	{
-		printf("Vertex: %i\n", iterator->vertex);
-		iterator = iterator->next;
+		printf("Vertex: %i\n", g->vertices[i]->id);
 	}
 }
