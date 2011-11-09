@@ -4,6 +4,11 @@ vertex_node *vertex_node_create()
 {
 	vertex_node *node = malloc(sizeof(vertex_node));
 
+	if(node == NULL)
+	{
+		printf("Error instantiating node\n");
+	}
+
 	vertex_node_init(node);
 
 	return node;

@@ -147,12 +147,21 @@ void graph_advance(graph *g, int day)
 	 */
 	while(vertex_queue_top(g->infectious) != NULL)
 	{
+		if(vertex_queue_top(g->infectious)->vertex == NULL)
+		{
+			printf("queue top = null\n");
+			continue;
+		}
+
+		if(vertex_queue_top(g->infectious)->vertex->state == LATENT)
+		{
+			vertex_set_state(vertex_queue_top(g->infectious)->vertex, INFECTIOUS, day);
+		}
+
 		if(day - vertex_queue_top(g->infectious)->vertex->day > DAYS_INFECTIOUS)
 		{
 			infected_node = vertex_queue_dequeue(g->infectious);
-			
 			vertex_set_state(infected_node->vertex, RECOVERED, day);
-
 			vertex_node_pool_free(g->pool, infected_node);
 		}
 		else
@@ -164,17 +173,10 @@ void graph_advance(graph *g, int day)
 	/**
 	 * Change over all the latent to infectious
 	 */
-	vertex_node *node;
-
-	node = vertex_queue_dequeue(g->latent);
-		
-	while(node != NULL)
-	{
-		vertex_set_state(node->vertex, INFECTIOUS, day);
-		vertex_queue_enqueue(g->infectious, node);
-
-		node = vertex_queue_dequeue(g->latent);
-	}
+	vertex_queue_prepend(g->infectious, g->latent);
+	g->latent->head = NULL;
+	g->latent->tail = NULL;
+	g->latent->length = 0;
 
 	/**
 	 * Now loop through all the remaining infectious vertices and
@@ -184,6 +186,11 @@ void graph_advance(graph *g, int day)
 	vertex_node *infectious_iterator = g->infectious->head;
 	while(infectious_iterator != NULL)
 	{
+		if(infectious_iterator->vertex->state == LATENT)
+		{
+			vertex_set_state(infectious_iterator->vertex, INFECTIOUS, day);
+		}
+
 		vertex_infect_neighbors(g, infectious_iterator->vertex, day);
 
 		infectious_iterator = infectious_iterator->next;
@@ -245,4 +252,31 @@ void graph_write_pajek(graph *g, char *file)
 _Bool graph_has_infectious(graph *g)
 {
 	return !vertex_queue_empty(g->infectious);
+}
+
+/**
+ * Opens a CSV statistics file for writing
+ * Writes header to file
+ */
+FILE *graph_open_stats(char *name)
+{
+	FILE *fp = fopen(name, "w");
+
+	fprintf(fp, "p, k, repitition, day\n");
+	
+	return fp;
+}
+
+/**
+ * Appends graph statistics to a supplied file pointer
+ */
+void graph_write_stats(graph *g, FILE *fp, double T, double p, int k, int r, int day)
+{
+	fprintf(fp, "%f,%f,%i,%i,%i\n",
+		T,
+		p,
+		k,
+		r,
+		day
+	);
 }

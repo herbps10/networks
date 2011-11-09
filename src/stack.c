@@ -4,6 +4,11 @@ vertex_stack *vertex_stack_create()
 {
 	vertex_stack *stack = malloc(sizeof(stack));
 
+	if(stack == NULL)
+	{
+		printf("Cannot instantiate stack\n");
+	}
+
 	vertex_stack_init(stack);
 	
 	return stack;

@@ -30,4 +30,7 @@ void graph_reset(graph *);
 
 _Bool graph_has_infectious(graph *);
 
+void graph_write_stats(graph *, FILE *, double, double, int, int, int);
+
+FILE *graph_open_stats(char *);
 #endif

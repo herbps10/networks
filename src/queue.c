@@ -4,6 +4,11 @@ vertex_queue *vertex_queue_create()
 {
 	vertex_queue *queue = malloc(sizeof(vertex_queue));
 
+	if(queue == NULL)
+	{
+		printf("Error instantiating queue\n");
+	}
+
 	vertex_queue_init(queue);
 
 	return queue;
@@ -110,8 +115,22 @@ _Bool vertex_queue_empty(vertex_queue *queue)
 {
 	if(queue->head == NULL)
 	{
-		return false;
+		return true;
 	}
 
-	return true;
+	return false;
+}
+
+void vertex_queue_prepend(vertex_queue *q1, vertex_queue *q2)
+{
+	if(q1->head != NULL && q2->head != NULL)
+	{
+		q2->tail->next = q1->head;
+		q1->head->prev = q2->tail;
+		q1->head = q2->head;
+
+		q1->length = q1->length + q2->length;
+
+		q1->head->backtrace = 1;
+	}
 }
