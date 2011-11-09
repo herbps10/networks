@@ -21,8 +21,24 @@ double T = 0.001;
 #include "vertex.c"
 #include "graph.c"
 
-int main()
+int main(int argc, char *argv[])
 {
+	float T_low, T_high, T_step;
+
+
+	if(argc != 4)
+	{
+		printf("Usage: networks T_low T_high T_step\n");
+		return 0;
+	}
+
+	// Scan in parameters
+	sscanf(argv[1], "%f", &T_low);
+	sscanf(argv[2], "%f", &T_high);
+	sscanf(argv[3], "%f", &T_step);
+
+
+
 	graph *g = graph_create();
 	
 	char file[100];
@@ -31,7 +47,7 @@ int main()
 
 	FILE *stats;
 
-	for(T = 0.00; T < 0.05; T += 0.005)
+	for(T = T_low; T < T_high; T += T_step)
 	{
 		snprintf(file, 100, "data/stats-%i.csv", (int)(T * 10000));
 		printf("%s\n", file);
