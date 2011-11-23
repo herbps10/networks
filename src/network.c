@@ -10,9 +10,13 @@
 
 #define R0 2
 
+#define RNOT_SCHEME 1
+
 #define SIMULATION_LENGTH 1865
 
 double T = 0.001;
+double R_not = 1;
+double X;
 
 #include "vertex_node.c"
 #include "stack.c"
@@ -24,19 +28,35 @@ double T = 0.001;
 int main(int argc, char *argv[])
 {
 	float T_low, T_high, T_step;
+	float R_not_low, R_not_high, R_not_step;
 
-
-	if(argc != 4)
+	if(RNOT_SCHEME == 1)
 	{
-		printf("Usage: networks T_low T_high T_step\n");
-		return 0;
+		if(argc != 4)
+		{
+			printf("Usage: networks R0_low R0_high R0_step\n");
+			return 0;
+		}
+
+		// Scan in parameters
+		sscanf(argv[1], "%f", &R_not_low);
+		sscanf(argv[2], "%f", &R_not_high);
+		sscanf(argv[3], "%f", &R_not_step);
+
 	}
+	else
+	{
+		if(argc != 4)
+		{
+			printf("Usage: networks T_low T_high T_step\n");
+			return 0;
+		}
 
-	// Scan in parameters
-	sscanf(argv[1], "%f", &T_low);
-	sscanf(argv[2], "%f", &T_high);
-	sscanf(argv[3], "%f", &T_step);
-
+		// Scan in parameters
+		sscanf(argv[1], "%f", &T_low);
+		sscanf(argv[2], "%f", &T_high);
+		sscanf(argv[3], "%f", &T_step);
+	}
 
 
 	graph *g = graph_create();
@@ -44,12 +64,31 @@ int main(int argc, char *argv[])
 	char file[100];
 
 	int day;
+	double average_times_sick;
 
 	FILE *stats;
 
-	for(T = T_low; T < T_high; T += T_step)
+	float low, high, step;
+
+	if(RNOT_SCHEME == 1)
 	{
-		snprintf(file, 100, "data/stats-%i.csv", (int)(T * 10000));
+		low = R_not_low;
+		high = R_not_high;
+		step = R_not_step;
+	}
+	else
+	{
+		low = T_low;
+		high = T_high;
+		step = T_step;
+	}
+
+	printf("here\n");
+	printf("%f %f %f\n", low, high, step);
+
+	for(X = low; X < high; X += step)
+	{
+		snprintf(file, 100, "data/stats-%f.csv", X);
 		printf("%s\n", file);
 		stats = graph_open_stats(file);	
 
@@ -57,7 +96,7 @@ int main(int argc, char *argv[])
 		{
 			for(double p = 0.0; p < 1; p += 0.01)
 			{
-				for(int simulation = 0; simulation < 10; simulation++)
+				for(int simulation = 0; simulation < 1; simulation++)
 				{
 					graph_reset(g);
 
@@ -76,7 +115,10 @@ int main(int argc, char *argv[])
 						day++;
 					}
 
-					graph_write_stats(g, stats, T, p, k, simulation, day);
+					average_times_sick = graph_average_times_sick(g);
+
+					graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
+					graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
 				}
 
 				//printf("%i %f\n", k, p);

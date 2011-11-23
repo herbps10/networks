@@ -15,6 +15,7 @@ void vertex_init(vertex *v)
 	v->state = SUSCEPTIBLE;
 	v->day = 0;
 	v->degree = 0;
+	v->times_sick = 0;
 
 	v->neighbors = vertex_stack_create();
 }
@@ -37,7 +38,7 @@ void vertex_add_adjacency(graph *g, vertex *v1, vertex *v2)
 _Bool vertex_edge_exists(vertex *v1, vertex *v2)
 {
 	vertex_node *iterator = v1->neighbors->head;
-while(iterator != NULL)
+	while(iterator != NULL)
 	{
 		if(iterator->vertex == v2)
 		{
@@ -127,14 +128,21 @@ void vertex_infect_neighbors(graph *g, vertex *v, int day)
 
 void vertex_spread_infection(graph *g, vertex *source, vertex *target, int day)
 {
-	//double T, r;
-	double r;
+	double T, r;
+	
+	if(RNOT_SCHEME == 0)
+	{
+		T = X;
+	}
 
 	// The probability of infecting a neighbor is proportional to
 	// how the degree of the vertex. This is so that the number of
 	// of secondary infections caused by the vertex will roughly equal
 	// R0.
-	//T = 1 - (1 - (((double)R0/(double)source->degree) / (double)DAYS_INFECTIOUS));
+	if(RNOT_SCHEME == 1)
+	{
+		T = 1 - (1 - (((double)X/(double)source->degree) / (double)DAYS_INFECTIOUS));
+	}
 
 	// Generate a random number between 0 and 1
 	// If it is smaller than T, then spread the infection
@@ -150,5 +158,7 @@ void vertex_spread_infection(graph *g, vertex *source, vertex *target, int day)
 		node->vertex = target;
 
 		vertex_queue_enqueue(g->latent, node);
+
+		node->vertex->times_sick++;
 	}
 }

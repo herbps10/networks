@@ -11,6 +11,8 @@ struct vertex_struct
 	int id;
 	int day;
 	int degree;
+	int times_sick;
+
 	enum state_enum state;
 
 	struct vertex_stack_struct *neighbors;

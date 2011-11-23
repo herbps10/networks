@@ -33,6 +33,7 @@ void graph_reset(graph *g)
 
 		g->vertices[i]->degree = 0;
 		g->vertices[i]->day = 0;
+		g->vertices[i]->times_sick = 0;
 	}
 
 	vertex_queue_destroy(g, g->infectious);
@@ -41,19 +42,19 @@ void graph_reset(graph *g)
 
 void graph_circle(graph *g, int K)
 {
-	int before, after;
-	for(int i = 0; i < NETWORK_SIZE; i++)
+	int after;
+
+	for(int k = 1; k <= ceil((K+1)/2); k++)
 	{
-		for(int k = 1; k <= K; k++)
+		for(int i = 0; i < NETWORK_SIZE; i++)
 		{
-			before = i - k; // The vertex to connect to on the left of the current vertex (smaller index)
-			after = i + k; // The vertex to connect to on the right of the current vertex (larger index)
-
-			if(before < 0) before += NETWORK_SIZE; // If we're less than 0 wrap around to the other end
-			if(after >= NETWORK_SIZE) after -= NETWORK_SIZE; // If we've gone past the end of the array wrap around to the other end
-
-			vertex_add_edge(g, g->vertices[i], g->vertices[before]);
-			vertex_add_edge(g, g->vertices[i], g->vertices[after]);
+			after = i + k;
+			if(after >= NETWORK_SIZE) after %= NETWORK_SIZE;
+			
+			if(g->vertices[after]->degree < K && g->vertices[i]->degree < K)
+			{
+				vertex_add_edge(g, g->vertices[i], g->vertices[after]);
+			}
 		}
 	}
 }
@@ -156,6 +157,7 @@ void graph_advance(graph *g, int day)
 		if(vertex_queue_top(g->infectious)->vertex->state == LATENT)
 		{
 			vertex_set_state(vertex_queue_top(g->infectious)->vertex, INFECTIOUS, day);
+			vertex_queue_top(g->infectious)->vertex->times_sick++;
 		}
 
 		if(day - vertex_queue_top(g->infectious)->vertex->day > DAYS_INFECTIOUS)
@@ -189,6 +191,7 @@ void graph_advance(graph *g, int day)
 		if(infectious_iterator->vertex->state == LATENT)
 		{
 			vertex_set_state(infectious_iterator->vertex, INFECTIOUS, day);
+			infectious_iterator->vertex->times_sick++;
 		}
 
 		vertex_infect_neighbors(g, infectious_iterator->vertex, day);
@@ -262,7 +265,7 @@ FILE *graph_open_stats(char *name)
 {
 	FILE *fp = fopen(name, "w");
 
-	fprintf(fp, "p, k, repitition, day\n");
+	fprintf(fp, "T, p, k, repitition, day, times_sick\n");
 	
 	return fp;
 }
@@ -270,13 +273,28 @@ FILE *graph_open_stats(char *name)
 /**
  * Appends graph statistics to a supplied file pointer
  */
-void graph_write_stats(graph *g, FILE *fp, double T, double p, int k, int r, int day)
+void graph_write_stats(graph *g, FILE *fp, double T, double p, int k, int r, int day, double average_times_sick)
 {
-	fprintf(fp, "%f,%f,%i,%i,%i\n",
+	fprintf(fp, "%f,%f,%i,%i,%i,%f\n",
 		T,
 		p,
 		k,
 		r,
-		day
+		day,
+		average_times_sick
 	);
+}
+
+/**
+ * Averages the number of times each vertex gets sick
+ */
+double graph_average_times_sick(graph *g) {
+	int sum = 0;
+	for(int i = 0; i < NETWORK_SIZE; i++) {
+		sum += g->vertices[i]->times_sick;
+	}
+
+	return (double)sum/(double)NETWORK_SIZE;
+
+	
 }
