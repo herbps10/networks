@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define NETWORK_SIZE 1000
 #define INITIAL_INFECTED 5
@@ -10,9 +11,11 @@
 
 #define R0 2
 
-#define RNOT_SCHEME 1
+#define RNOT_SCHEME 0
 
 #define SIMULATION_LENGTH 1865
+
+#define WRITE_BUFFER_SIZE 5000
 
 double T = 0.001;
 double R_not = 1;
@@ -83,8 +86,7 @@ int main(int argc, char *argv[])
 		step = T_step;
 	}
 
-	printf("here\n");
-	printf("%f %f %f\n", low, high, step);
+	float data[WRITE_BUFFER_SIZE][6];
 
 	for(X = low; X < high; X += step)
 	{
@@ -92,11 +94,13 @@ int main(int argc, char *argv[])
 		printf("%s\n", file);
 		stats = graph_open_stats(file);	
 
+		int counter = 0;
+
 		for(int k = 0; k < 40; k++)
 		{
-			for(double p = 0.0; p < 1; p += 0.01)
+			for(double p = 0.0; p <= 1; p += 0.01)
 			{
-				for(int simulation = 0; simulation < 1; simulation++)
+				for(int simulation = 0; simulation < 50; simulation++)
 				{
 					graph_reset(g);
 
@@ -117,12 +121,35 @@ int main(int argc, char *argv[])
 
 					average_times_sick = graph_average_times_sick(g);
 
-					graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
-					graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
+					//graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
+
+					data[counter][0] = X;
+					data[counter][1] = p;
+					data[counter][2] = k;
+					data[counter][3] = simulation;
+					data[counter][4] = day;
+					data[counter][5] = average_times_sick;
+
+					counter++;
+
+					if(counter == WRITE_BUFFER_SIZE) 
+					{
+						for(int i = 0; i < WRITE_BUFFER_SIZE; i++)
+						{
+							graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]);
+						}
+
+						counter = 0;
+					}
 				}
 
 				//printf("%i %f\n", k, p);
 			}
+		}
+
+		for(int i = 0; i < counter; i++)
+		{
+			graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]);
 		}
 
 		fclose(stats);
