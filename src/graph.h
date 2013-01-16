@@ -30,10 +30,12 @@ void graph_reset(graph *);
 
 _Bool graph_has_infectious(graph *);
 
-void graph_write_stats(graph *, FILE *, double, double, int, int, int, double);
+void graph_write_stats(graph *, FILE *, double, double, int, int, int, double, double, int);
 
 FILE *graph_open_stats(char *);
 
 double graph_average_times_sick(graph *);
+
+double graph_max_infected(graph *g);
 
 #endif

@@ -12,6 +12,7 @@ struct vertex_struct
 	int day;
 	int degree;
 	int times_sick;
+	int infections_caused;
 
 	enum state_enum state;
 

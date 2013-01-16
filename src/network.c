@@ -1,15 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
 
-#define NETWORK_SIZE 1000
+#define NETWORK_SIZE 100000
 #define INITIAL_INFECTED 5
 
-#define DAYS_INFECTIOUS 3
-#define DAYS_LATENT 1
-#define DAYS_RECOVERED 60
+#define REPITITIONS 5
 
-#define R0 2
+#define R0 3
 
 #define RNOT_SCHEME 0
 
@@ -20,6 +19,11 @@
 double T = 0.001;
 double R_not = 1;
 double X;
+int k;
+
+int DAYS_INFECTIOUS = 3;
+int DAYS_LATENT = 1;
+int DAYS_RECOVERED = 60;
 
 #include "vertex_node.c"
 #include "stack.c"
@@ -30,6 +34,8 @@ double X;
 
 int main(int argc, char *argv[])
 {
+	srand(time(NULL));
+
 	float T_low, T_high, T_step;
 	float R_not_low, R_not_high, R_not_step;
 
@@ -86,7 +92,11 @@ int main(int argc, char *argv[])
 		step = T_step;
 	}
 
-	float data[WRITE_BUFFER_SIZE][6];
+	float data[WRITE_BUFFER_SIZE][8];
+
+	int max_infected = 0;
+	int peak = 0;
+	int infected = 0;
 
 	for(X = low; X < high; X += step)
 	{
@@ -96,25 +106,36 @@ int main(int argc, char *argv[])
 
 		int counter = 0;
 
-		for(int k = 0; k < 40; k++)
+		for(k = 2; k < 40; k++)
 		{
 			for(double p = 0.0; p <= 1; p += 0.01)
 			{
-				for(int simulation = 0; simulation < 50; simulation++)
+				printf("k: %i, p: %f\n", k, p);
+				for(int simulation = 0; simulation < REPITITIONS; simulation++)
 				{
 					graph_reset(g);
 
 					graph_circle(g, k);
 					graph_rewire(g, p);
 					graph_init_infected(g);
-
+						
+					peak = 0;
 					day = 0;
 					while(day < SIMULATION_LENGTH && graph_has_infectious(g) == true)
 					{
 						//snprintf(file, 100, "graph-data/graph%i.pajek", day);
 						//graph_write_pajek(g, &file[0]);
-
+						
 						graph_advance(g, day);
+
+						if(g->infectious != NULL)
+						{
+							infected = g->infectious->length;
+							if(infected > peak)
+							{
+								peak = infected;
+							}
+						}
 
 						day++;
 					}
@@ -123,12 +144,15 @@ int main(int argc, char *argv[])
 
 					//graph_write_stats(g, stats, X, p, k, simulation, day, average_times_sick);
 
+					
 					data[counter][0] = X;
 					data[counter][1] = p;
 					data[counter][2] = k;
 					data[counter][3] = simulation;
 					data[counter][4] = day;
 					data[counter][5] = average_times_sick;
+					data[counter][6] = graph_max_infected(g);
+					data[counter][7] = peak;
 
 					counter++;
 
@@ -136,7 +160,7 @@ int main(int argc, char *argv[])
 					{
 						for(int i = 0; i < WRITE_BUFFER_SIZE; i++)
 						{
-							graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]);
+							graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6], data[i][7]);
 						}
 
 						counter = 0;
@@ -149,7 +173,7 @@ int main(int argc, char *argv[])
 
 		for(int i = 0; i < counter; i++)
 		{
-			graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5]);
+			graph_write_stats(g, stats, data[i][0], data[i][1], data[i][2], data[i][3], data[i][4], data[i][5], data[i][6], data[i][7]);
 		}
 
 		fclose(stats);

@@ -45,6 +45,8 @@ void vertex_queue_enqueue(vertex_queue *queue, vertex_node *node)
 		node->next = queue->head;
 
 		queue->head = node;
+
+		queue->length++;
 	}
 }
 

@@ -134,15 +134,22 @@ void vertex_spread_infection(graph *g, vertex *source, vertex *target, int day)
 	{
 		T = X;
 	}
+	else 
+	{
+		T = 1.0 - pow(1.0 - X/(double)k, 1.0 / (double)DAYS_INFECTIOUS);
+		//T = 0.333 - (1.0/180.0) * (double)k;
+		//T = (1.0/180.0) * (double)k;
+	}
 
 	// The probability of infecting a neighbor is proportional to
 	// how the degree of the vertex. This is so that the number of
 	// of secondary infections caused by the vertex will roughly equal
 	// R0.
-	if(RNOT_SCHEME == 1)
+	/*if(RNOT_SCHEME == 1)
 	{
 		T = 1 - (1 - (((double)X/(double)source->degree) / (double)DAYS_INFECTIOUS));
 	}
+	*/
 
 	// Generate a random number between 0 and 1
 	// If it is smaller than T, then spread the infection
@@ -152,13 +159,17 @@ void vertex_spread_infection(graph *g, vertex *source, vertex *target, int day)
 	// latent class
 	if(r < T)
 	{
-		vertex_set_state(target, LATENT, day);
+		//vertex_set_state(target, LATENT, day);
+    vertex_set_state(target, INFECTIOUS, day);
 
 		vertex_node *node = vertex_node_pool_get(g->pool);
 		node->vertex = target;
 
-		vertex_queue_enqueue(g->latent, node);
+		vertex_queue_enqueue(g->infectious, node);
 
 		node->vertex->times_sick++;
+
+		// Record that we caused an infection
+		source->infections_caused++;
 	}
 }
